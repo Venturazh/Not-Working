@@ -51,7 +51,9 @@ local Tabs = {
 -- except Tabboxes you have to call the functions on a tab (Tabbox:AddTab(name))
 local Self = Tabs.Local:AddLeftGroupbox('Local Player')
 local Esp = Tabs.Visuals:AddLeftGroupbox("Visuals")
+local Quality = Tabs.Local:AddRightGroupbox("Quality of Life")
 local Others = Tabs.Local:AddRightGroupbox("Other Players")
+
 
 local SpeedHack_Settings = {
     Value = 0,
@@ -307,9 +309,139 @@ local StopSpectate = Others:AddButton({
     Tooltip = "Used To Stop Spectating"
 })
 
+Self:AddToggle('NoFall', {
+    Text = 'NoFall',
+    Default = false,
+    Tooltip = 'Toggle To Enable NoFall',
+})
+
+Toggles.NoFall:OnChanged(function()
+    if Toggles.NoFall.Value == true then
+
+        local Remote = game:GetService("ReplicatedStorage"):WaitForChild("Requests").Ecjodoian
+
+        local mt = getrawmetatable(game)
+        setreadonly(mt, false)
+        local oldNamecall = mt.__namecall
+
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+
+            if method == "FireServer" and self == Remote then
+                return
+            end
+            return oldNamecall(self, ...)
+        end)
+
+        setreadonly(mt, true)
+    else
+        local mt = getrawmetatable(game)
+        setreadonly(mt, false)
+        if Connections.OldNamecall then
+            mt.__namecall = Connections.OldNamecall
+        end
+        setreadonly(mt, true)
+    end
+end)
+
+local Points = Quality:AddButton({
+    Text = "Free 90 Points",
+    Func = function()
+        local List = {"Strength", "Fortitude", "Agility", "Intelligence", "Willpower", "Charisma", "WeaponMedium", "WeaponHeavy", "WeaponLight"}
+
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 20 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 30 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 40 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 50 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 60 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 70 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 80  do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 100 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 100 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 100 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 100 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+    end,  
+    DoubleClick = false,
+    Tooltip = "Use In Character Creation"
+})
+
+
+
 --=================================================================================================--
 --|                                          ESP                                                     |--
 --=================================================================================================--
+
+
+local function AttachEsp()
+
+    while true do
+        for _, others in pairs(game.Players:GetPlayers()) do
+            local ochar = others.Character or others.CharacterAdded:Wait()
+            local ohum = ochar:FindFirstChildOfClass("Humanoid")
+            local oroot = ochar:FindFirstChild("HumanoidRootPart")
+
+            local user = others.UserId
+            if Connections.Esp[user] then continue end
+
+            Connections.Esp = Connections.Esp or {}
+
+            Connections.Esp = RunService.Heartbeat:Connect(function()
+                
+                
+            end)
+
+            others.PlayerRemoving:Connect(function(leaving)
+                local leavingUser = leaving.UserId
+                if Connections.Esp[leavingUser] then
+                    Connections.Esp[leavingUser]:Disconnect()
+                    Connections.Esp[leavingUser] = nil
+                end
+            end)
+        end
+        task.wait()
+    end
+end
+
 
 -- We can also get our Main tab via the following code:
 -- local LeftGroupBox = Window.Tabs.Main:AddLeftGroupbox('Groupbox')
