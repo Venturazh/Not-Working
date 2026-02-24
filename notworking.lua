@@ -53,78 +53,138 @@ local Self = Tabs.Local:AddLeftGroupbox('Local Player')
 local Esp = Tabs.Visuals:AddLeftGroupbox("Visuals")
 local Others = Tabs.Local:AddRightGroupbox("Other Players")
 
-local PlayerSpeed = {
-    Speed = humanoid.WalkSpeed,
-    Bool = false,
-    Saved = 16,
-}
-local PlayerJump = {
-    Jump = humanoid.JumpPower,
-    Bool = false,
-    Saved = 7.2,
+local SpeedHack_Settings = {
+    Value = 0,
+    Active = false,
+    Saved = 0,
 }
 
-Self:AddToggle('Walkspeed', {
-    Text = 'Walkspeed',
+Self:AddToggle("SpeedHack", {
+    Text = "Speed Hack",
     Default = false,
-    Tooltip = 'Changes local player walkspeed',
 })
-Toggles.Walkspeed:OnChanged(function()
-    PlayerSpeed.Bool = Toggles.Walkspeed.Value
-    if PlayerSpeed.Bool then
-        humanoid.WalkSpeed = PlayerSpeed.Saved
+Toggles.SpeedHack:OnChanged(function()
+    SpeedHack_Settings.Active = Toggles.SpeedHack.Value
+    if SpeedHack_Settings.Active then
+        Connections.SpeedConn1 = RunService.Heartbeat:Connect(function()
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                root.AssemblyLinearVelocity = root.CFrame.LookVector * SpeedHack_Settings.Value
+            end
+        end)
     else
-        humanoid.WalkSpeed = PlayerSpeed.Speed
+        root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        if Connections.SpeedConn1 then
+            Connections.SpeedConn1:Disconnect()
+        end
+        SpeedHack_Settings.Value = false
     end
 end)
 
-Self:AddSlider("Speed", {
-    Text = 'Walkspeed Value',
-    Default = 16,
-    Min = 16,
-    Max = 200,
+Self:AddSlider("SpeedHackSpeed", {
+    Text = "SpeedHack Speed Multiplier",
+    Default = 25,
+    Min = 1, 
+    Max = 150,
     Rounding = 1,
     Compact = false
 })
-Options.Speed:OnChanged(function()
-    PlayerSpeed.Saved = Options.Speed.Value
-    if PlayerSpeed.Bool then
-        humanoid.WalkSpeed = Options.Speed.Value
-    end
-end)
 
---=================================================================================================--
---|                                                                                               |--
---=================================================================================================--
-
-Self:AddToggle('Jumppower', {
-    Text = 'JumpPower',
-    Default = false,
-    Tooltip = 'Changes local player jump power',
-})
-Toggles.Jumppower:OnChanged(function()
-    PlayerJump.Bool = Toggles.Jumppower.Value
-    if PlayerJump.Bool then
-        humanoid.JumpPower = PlayerJump.Saved
+Options.SpeedHackSpeed:OnChanged(function()
+    SpeedHack_Settings.Value = Options.SpeedHackSpeed.Value
+    if SpeedHack_Settings.Active then
+        Connections.SpeedConn2 = RunService.Heartbeat:Connect(function()
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                root.AssemblyLinearVelocity = root.CFrame.LookVector * SpeedHack_Settings.Value
+            end
+        end)
     else
-        humanoid.JumpPower = PlayerJump.Jump
+        root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        if Connections.SpeedConn2 then
+            Connections.SpeedConn2:Disconnect()
+        end
+        SpeedHack_Settings.Value = false
     end
 end)
 
-Self:AddSlider("Power", {
-    Text = 'Jumppower Value',
-    Default = 7.2,
-    Min = 7.2,
-    Max = 200,
-    Rounding = 1,
-    Compact = false
-})
-Options.Power:OnChanged(function()
-    PlayerJump.Saved = Options.Power.Value
-    if PlayerJump.Bool then
-        humanoid.JumpPower = Options.Power.Value
-    end
-end)
+
+-- local PlayerSpeed = {
+--     Speed = humanoid.WalkSpeed,
+--     Bool = false,
+--     Saved = 16,
+-- }
+-- local PlayerJump = {
+--     Jump = humanoid.JumpPower,
+--     Bool = false,
+--     Saved = 7.2,
+-- }
+
+-- Self:AddToggle('Walkspeed', {
+--     Text = 'Walkspeed',
+--     Default = false,
+--     Tooltip = 'Changes local player walkspeed',
+-- })
+-- Toggles.Walkspeed:OnChanged(function()
+--     PlayerSpeed.Bool = Toggles.Walkspeed.Value
+--     if PlayerSpeed.Bool then
+--         humanoid.WalkSpeed = PlayerSpeed.Saved
+--     else
+--         humanoid.WalkSpeed = PlayerSpeed.Speed
+--     end
+-- end)
+
+-- Self:AddSlider("Speed", {
+--     Text = 'Walkspeed Value',
+--     Default = 16,
+--     Min = 16,
+--     Max = 200,
+--     Rounding = 1,
+--     Compact = false
+-- })
+-- Options.Speed:OnChanged(function()
+--     PlayerSpeed.Saved = Options.Speed.Value
+--     if PlayerSpeed.Bool then
+--         humanoid.WalkSpeed = Options.Speed.Value
+--     end
+-- end)
+
+-- --=================================================================================================--
+-- --|                                                                                               |--
+-- --=================================================================================================--
+
+-- Self:AddToggle('Jumppower', {
+--     Text = 'JumpPower',
+--     Default = false,
+--     Tooltip = 'Changes local player jump power',
+-- })
+-- Toggles.Jumppower:OnChanged(function()
+--     PlayerJump.Bool = Toggles.Jumppower.Value
+--     print("Made Check1")
+--     if PlayerJump.Bool then
+--         humanoid.JumpPower = PlayerJump.Saved
+--         print("Made Check2")
+--     else
+--         humanoid.JumpPower = PlayerJump.Speed
+--         print("Made Check3")
+--     end
+-- end)
+
+-- Self:AddSlider("Power", {
+--     Text = 'Jumppower Value',
+--     Default = 7.2,
+--     Min = 7.2,
+--     Max = 200,
+--     Rounding = 1,
+--     Compact = false
+-- })
+-- Options.Power:OnChanged(function()
+--     PlayerJump.Saved = Options.Power.Value
+--     print("Made Check4")
+--     if PlayerJump.Bool then
+--         print("Made Check5")
+--         humanoid.JumpPower = Options.Power.Value
+--     end
+--     print("Made Check 6")
+-- end)
 
 local FlySettings = {
     Speed = 50,
@@ -250,105 +310,6 @@ local StopSpectate = Others:AddButton({
 --=================================================================================================--
 --|                                          ESP                                                     |--
 --=================================================================================================--
-
-local EspScreen = Instance.new("ScreenGui")
-EspScreen.Parent = PlayerGui
-
-local function EnableEsp()
-    for _, others in pairs(game.Players:GetPlayers()) do
-        if others == game.Players.LocalPlayer then continue end
-        
-        local ochar = others.Character
-        if not ochar then continue end
-
-        local oroot = ochar:FindFirstChild("HumanoidRootPart")
-        if not oroot then continue end        
-
-        if Connections.Esp and Connections.Esp[others.UserId] then continue end
-
-        local EspFrame = Instance.new("Frame")
-        EspFrame.Parent = EspScreen
-        EspFrame.BackgroundColor3 = Color3.fromRGB(255, 85, 51)
-        EspFrame.SizeConstraint = Enum.SizeConstraint.RelativeXX
-        EspFrame.BackgroundTransparency  = 0.7
-
-
-        local EspBox = Instance.new("UIStroke")
-        EspBox.Parent = EspFrame
-        EspBox.Color = Color3.fromRGB(255, 85, 21)
-        EspBox.Thickness = 0.5
-        Connections.Esp = Connections.Esp or {}
-        Connections.Esp[others.UserId] = RunService.Heartbeat:Connect(function()
-            if not oroot or not oroot.Parent then
-                Connections.Esp[others.UserId]:Disconnect()
-                Connections.Esp[others.UserId] = nil
-                EspFrame:Destroy()
-                return
-            end
-
-            local ConvertedPos, onScreen = camera:WorldToScreenPoint(oroot.Position)
-
-            if onScreen then
-                local distance = (camera.CFrame.Position - oroot.Position).Magnitude
-                local scale = 200 / distance
-
-                local rounded = math.round(scale * 15)
-
-                EspFrame.Visible = true
-                EspFrame.Size = UDim2.new(0, rounded, 0, rounded * 1.2)
-                EspFrame.Position = UDim2.new(0, ConvertedPos.X - (scale * 7), 0, ConvertedPos.Y - (scale * 5))
-            else
-                EspFrame.Visible = false
-            end
-        end)
-    end
-end
-
-local function UpdateEsp()
-    for userId, connection in pairs(Connections.Esp or {}) do
-        local player = game.Players:GetPlayerByUserId(userId)
-        if not player then
-            connection:Disconnect()
-            Connections.Esp[userId] = nil
-        end
-    end
-
-    EnableEsp()
-end
-
-local function DisableEsp()
-    for userId, connection in pairs(Connections.Esp or {}) do
-        connection:Disconnect()
-        Connections.Esp[userId] = nil
-    end
-
-    for _, child in pairs(EspScreen:GetChildren()) do
-        child:Destroy()
-    end
-end
-
-local on = false
-
-Esp:AddToggle("Esp", {
-    Text = "Esp",
-    Default = false,
-    Tooltip = "Enables Esp"
-})
-
-Toggles.Esp:OnChanged(function()
-    on = Toggles.Esp.Value
-    if Toggles.Esp.Value then
-        EnableEsp()
-    else
-        DisableEsp()
-    end
-end)
-
-Connections.Conn6 = RunService.Heartbeat:Connect(function()
-    if on then
-        UpdateEsp()
-    end
-end)
 
 -- We can also get our Main tab via the following code:
 -- local LeftGroupBox = Window.Tabs.Main:AddLeftGroupbox('Groupbox')
