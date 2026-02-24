@@ -264,6 +264,8 @@ local function EnableEsp()
         local oroot = ochar:FindFirstChild("HumanoidRootPart")
         if not oroot then continue end        
 
+        if Connections.Esp and Connections.Esp[others.UserId] then continue end
+
         local EspFrame = Instance.new("Frame")
         EspFrame.Parent = EspScreen
         EspFrame.BackgroundColor3 = Color3.fromRGB(255, 85, 51)
@@ -302,13 +304,30 @@ local function EnableEsp()
     end
 end
 
-local function RefreshEsp()
+local function UpdateEsp()
+    for userId, connection in pairs(Connections.Esp or {}) do
+        local player = game.Players:GetPlayerByUserId(userId)
+        if not player then
+            connection:Disconnect()
+            Connections.Esp[userId] = nil
+        end
+    end
 
+    EnableEsp()
 end
 
 local function DisableEsp()
+    for userId, connection in pairs(Connections.Esp or {}) do
+        connection:Disconnect()
+        Connections.Esp[userId] = nil
+    end
 
+    for _, child in pairs(EspScreen:GetChildren()) do
+        child:Destroy()
+    end
 end
+
+local on = false
 
 Esp:AddToggle("Esp", {
     Text = "Esp",
@@ -317,8 +336,17 @@ Esp:AddToggle("Esp", {
 })
 
 Toggles.Esp:OnChanged(function()
+    on = Toggles.Esp.Value
     if Toggles.Esp.Value then
         EnableEsp()
+    else
+        DisableEsp()
+    end
+end)
+
+Connections.Conn6 = RunService.Heartbeat:Connect(function()
+    if on then
+        UpdateEsp()
     end
 end)
 
