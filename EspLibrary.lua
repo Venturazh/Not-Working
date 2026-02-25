@@ -221,7 +221,7 @@ function EspObject:Update()
 		return;
 	end
 
-	local _, onScreen = worldToScreen(head.Position);
+	local _, onScreen, depth = worldToScreen(head.Position)
 	self.onScreen = onScreen;
 	if camera then
 		self.distance = (camera.CFrame.p - head.Position).Magnitude;
