@@ -177,7 +177,7 @@ function EspObject:Construct()
 			boxOutline = self:_create("Square", { Filled = false, Thickness = 3, Visible = false }),
 			box = self:_create("Square", { Filled = false, Thickness = 1, Visible = false }),
 			healthBarOutline = self:_create("Line", { Thickness = 3, Visible = false }),
-			healthBar = self:_create("Line", { Thickness = 1, Visible = false }),
+			healthBar = self:_create("Line", { Thickness = 3, Visible = false }),
 			healthText = self:_create("Text", { Center = true, Visible = false }),
 			name = self:_create("Text", { Text = self.player.Name, Center = true, Visible = false }),
 			distance = self:_create("Text", { Center = true, Visible = false }),
