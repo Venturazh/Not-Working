@@ -425,7 +425,6 @@ Toggles.Npc:OnChanged(function()
         for _, items in pairs(game.Workspace.Live:GetChildren()) do
             Esp._objectCache[items] = nil
         end
-        AllObjects.teamSettings.enemy.box = Toggles.Npc.Value
     end
 end)
 
