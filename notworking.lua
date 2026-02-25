@@ -65,7 +65,14 @@ local SpeedHack_Settings = {
 Self:AddToggle("SpeedHack", {
     Text = "Speed Hack",
     Default = false,
+}):AddKeyPicker('SpeedHackKey', {
+    Default = 'K',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Speedhack Keybind',
+    NoUI = false,
 })
+
 Toggles.SpeedHack:OnChanged(function()
     SpeedHack_Settings.Active = Toggles.SpeedHack.Value
     if SpeedHack_Settings.Active then
@@ -199,6 +206,12 @@ Self:AddToggle('Fly', {
     Text = 'Fly',
     Default = false,
     Tooltip = 'Toggle To Enable Flying',
+}):AddKeyPicker('FlyKey', {
+    Default = 'J',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Fly Keybind',
+    NoUI = false,
 })
 
 Toggles.Fly:OnChanged(function()
@@ -380,66 +393,134 @@ Toggles.Health:OnChanged(function()
     Esp.teamSettings.enemy.healthBar = Toggles.Health.Value
 end)
 
--- local Points = Quality:AddButton({
---     Text = "Free 90 Points",
---     Func = function()
---         local List = {"Strength", "Fortitude", "Agility", "Intelligence", "Willpower", "Charisma", "WeaponMedium", "WeaponHeavy", "WeaponLight"}
+local Npcs = {}
 
---         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
---         for i = 0, 20 do
---             for _, types in pairs(List) do
---                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
---             end
---         end
---         for i = 0, 30 do
---             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
---         end
---         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
---         for i = 0, 40 do
---             for _, types in pairs(List) do
---                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
---             end
---         end
---         for i = 0, 50 do
---             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
---         end
---         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
---         for i = 0, 60 do
---             for _, types in pairs(List) do
---                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
---             end
---         end
---         for i = 0, 70 do
---             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
---         end
---         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
---         for i = 0, 80  do
---             for _, types in pairs(List) do
---                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
---             end
---         end
---         for i = 0, 100 do
---             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
---         end
---         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
---         for i = 0, 100 do
---             for _, types in pairs(List) do
---                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
---             end
---         end
---         for i = 0, 100 do
---             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
---         end
---         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
---         for i = 0, 100 do
---             for _, types in pairs(List) do
---                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
---             end
---         end
---     end,  
---     DoubleClick = false,
---     Tooltip = "Use In Character Creation"
--- })
+Espp:AddToggle('Npc', {
+    Text = 'Npc',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
+})
+
+Toggles.Npc:OnChanged(function()
+    if Toggles.Npc.Value then
+        for _, alive in pairs(game.Workspace.Live:GetChildren()) do
+            for _, others in pairs(game.Players:GetPlayers()) do
+                if alive ~= others and alive ~= player then
+                local AllObjects = Esp.AddInstance(alive, {
+                    text = alive.Name,
+                    textColor = { Color3.new(1,1,1), 1 },
+                    limitDistance = true,
+                    maxDistance = 400
+                })
+                AllObjects.teamSettings.enemy.box = Toggles.Npc.Value
+                table.insert(Npcs, AllObjects)
+                end
+            end
+        end
+    else
+        for _, instance in pairs(Npcs) do
+            instance:Destruct()
+        end
+        Npcs = {}
+
+        for _, items in pairs(game.Workspace.Live:GetChildren()) do
+            Esp._objectCache[items] = nil
+        end
+        AllObjects.teamSettings.enemy.box = Toggles.Npc.Value
+    end
+end)
+
+Espp:AddToggle('Ingredients', {
+    Text = 'Ingredients',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
+})
+
+local Objects = {}
+
+Toggles.Ingredients:OnChanged(function()
+    if Toggles.Ingredients.Value then
+        for _, items in pairs(game.Workspace.Ingredients:GetChildren()) do
+            local Instan = Esp.AddInstance(items, {
+                text = items.Name,
+                textColor = { Color3.new(1,1,1), 1 },
+                limitDistance = true,
+                maxDistance = 400
+            })
+            table.insert(Objects, Instan)
+        end
+    else
+      for _, instance in pairs(Objects) do
+            instance:Destruct()
+        end
+        Objects = {}
+
+        for _, items in pairs(game.Workspace.Ingredients:GetChildren()) do
+            Esp._objectCache[items] = nil
+        end
+    end
+end)
+
+local Points = Quality:AddButton({
+    Text = "Free 90 Points",
+    Func = function()
+        local List = {"Strength", "Fortitude", "Agility", "Intelligence", "Willpower", "Charisma", "WeaponMedium", "WeaponHeavy", "WeaponLight"}
+
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 20 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 30 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 40 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 50 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 60 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 70 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 80  do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 100 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 100 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+        for i = 0, 100 do
+            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+        end
+        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+        for i = 0, 100 do
+            for _, types in pairs(List) do
+                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+            end
+        end
+    end,  
+    DoubleClick = false,
+    Tooltip = "Use In Character Creation"
+})
 
 
 
