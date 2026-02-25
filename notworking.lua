@@ -54,6 +54,7 @@ local Esp = Tabs.Visuals:AddLeftGroupbox("Visuals")
 local Quality = Tabs.Local:AddRightGroupbox("Quality of Life")
 local Others = Tabs.Local:AddRightGroupbox("Other Players")
 
+local Esp = require(Main/EspLibrary.lua)
 
 local SpeedHack_Settings = {
     Value = 0,
