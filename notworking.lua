@@ -50,11 +50,11 @@ local Tabs = {
 -- Groupbox and Tabbox inherit the same functions
 -- except Tabboxes you have to call the functions on a tab (Tabbox:AddTab(name))
 local Self = Tabs.Local:AddLeftGroupbox('Local Player')
-local Esp = Tabs.Visuals:AddLeftGroupbox("Visuals")
+local Espp = Tabs.Visuals:AddLeftGroupbox("Esp")
 local Quality = Tabs.Local:AddRightGroupbox("Quality of Life")
 local Others = Tabs.Local:AddRightGroupbox("Other Players")
 
-local Esp = require(Main/EspLibrary.lua)
+local Esp = loadstring(game:HttpGet("https://github.com/Venturazh/Not-Working/raw/refs/heads/main/EspLibrary.lua", true))()
 
 local SpeedHack_Settings = {
     Value = 0,
@@ -310,16 +310,19 @@ local StopSpectate = Others:AddButton({
     Tooltip = "Used To Stop Spectating"
 })
 
-Self:AddToggle('NoFall', {
-    Text = 'NoFall',
+Espp:AddToggle('Extra', {
+    Text = 'Esp',
     Default = false,
     Tooltip = 'Toggle To Enable NoFall',
 })
 
-Toggles.NoFall:OnChanged(function()
-    -- if Toggles.NoFall.Value == true then
+Toggles.Extra:OnChanged(function()
 
-    --     local Remote = game:GetService("ReplicatedStorage"):WaitForChild("Requests").Ecjodoian
+    --     local Requests = game:GetService("ReplicatedStorage").Requests
+    --     local children = Requests:GetChildren()
+
+    --     local Remote = Requests:GetChildren()[19]
+    --     print(Remote.Name)
 
     --     local mt = getrawmetatable(game)
     --     setreadonly(mt, false)
@@ -342,70 +345,101 @@ Toggles.NoFall:OnChanged(function()
     --         mt.__namecall = Connections.OldNamecall
     --     end
     --     setreadonly(mt, true)
-    -- end
-		Esp.Load()
+        
+        Esp.Load()
+        Esp.teamSettings.enemy.enabled = true
 end)
 
-local Points = Quality:AddButton({
-    Text = "Free 90 Points",
-    Func = function()
-        local List = {"Strength", "Fortitude", "Agility", "Intelligence", "Willpower", "Charisma", "WeaponMedium", "WeaponHeavy", "WeaponLight"}
-
-        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
-        for i = 0, 20 do
-            for _, types in pairs(List) do
-                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
-            end
-        end
-        for i = 0, 30 do
-            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
-        end
-        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
-        for i = 0, 40 do
-            for _, types in pairs(List) do
-                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
-            end
-        end
-        for i = 0, 50 do
-            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
-        end
-        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
-        for i = 0, 60 do
-            for _, types in pairs(List) do
-                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
-            end
-        end
-        for i = 0, 70 do
-            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
-        end
-        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
-        for i = 0, 80  do
-            for _, types in pairs(List) do
-                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
-            end
-        end
-        for i = 0, 100 do
-            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
-        end
-        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
-        for i = 0, 100 do
-            for _, types in pairs(List) do
-                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
-            end
-        end
-        for i = 0, 100 do
-            local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
-        end
-        local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
-        for i = 0, 100 do
-            for _, types in pairs(List) do
-                local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
-            end
-        end
-    end,  
-    DoubleClick = false,
-    Tooltip = "Use In Character Creation"
+Espp:AddToggle('Box', {
+    Text = 'Box',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
 })
+
+Toggles.Box:OnChanged(function()
+    Esp.teamSettings.enemy.box = Toggles.Box.Value
+end)
+
+Espp:AddToggle('Names', {
+    Text = 'Names',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
+})
+
+Toggles.Names:OnChanged(function()
+    Esp.teamSettings.enemy.name = Toggles.Names.Value
+end)
+
+Espp:AddToggle('Health', {
+    Text = 'Health',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
+})
+
+Toggles.Health:OnChanged(function()
+    Esp.teamSettings.enemy.healthBar = Toggles.Health.Value
+end)
+
+-- local Points = Quality:AddButton({
+--     Text = "Free 90 Points",
+--     Func = function()
+--         local List = {"Strength", "Fortitude", "Agility", "Intelligence", "Willpower", "Charisma", "WeaponMedium", "WeaponHeavy", "WeaponLight"}
+
+--         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+--         for i = 0, 20 do
+--             for _, types in pairs(List) do
+--                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+--             end
+--         end
+--         for i = 0, 30 do
+--             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+--         end
+--         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+--         for i = 0, 40 do
+--             for _, types in pairs(List) do
+--                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+--             end
+--         end
+--         for i = 0, 50 do
+--             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+--         end
+--         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+--         for i = 0, 60 do
+--             for _, types in pairs(List) do
+--                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+--             end
+--         end
+--         for i = 0, 70 do
+--             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+--         end
+--         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+--         for i = 0, 80  do
+--             for _, types in pairs(List) do
+--                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+--             end
+--         end
+--         for i = 0, 100 do
+--             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+--         end
+--         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+--         for i = 0, 100 do
+--             for _, types in pairs(List) do
+--                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+--             end
+--         end
+--         for i = 0, 100 do
+--             local Increase = game:GetService("ReplicatedStorage").Requests.IncreaseAttribute:InvokeServer("WeaponMedium")
+--         end
+--         local Reroll = game:GetService("ReplicatedStorage").Requests.CharacterCreator.RerollAttributes:InvokeServer()
+--         for i = 0, 100 do
+--             for _, types in pairs(List) do
+--                 local Decrease = game:GetService("ReplicatedStorage").Requests.CharacterCreator.DecreaseAttribute:InvokeServer(types)
+--             end
+--         end
+--     end,  
+--     DoubleClick = false,
+--     Tooltip = "Use In Character Creation"
+-- })
 
 
 
@@ -414,36 +448,31 @@ local Points = Quality:AddButton({
 --=================================================================================================--
 
 
-local function AttachEsp()
+-- Visuals:AddToggle("Names", {
+--     Text = "Enable Names",
+--     Default = false
+-- })
 
-    while true do
-        for _, others in pairs(game.Players:GetPlayers()) do
-            local ochar = others.Character or others.CharacterAdded:Wait()
-            local ohum = ochar:FindFirstChildOfClass("Humanoid")
-            local oroot = ochar:FindFirstChild("HumanoidRootPart")
+-- Toggles.Names:OnChanged(function()
+--     if Toggles.Esp.Value then
+--         Esp.teamSettings.enemy.name = true
+--     else
+--        Esp.teamSettings.enemy.name = false
+--     end
+-- end)
 
-            local user = others.UserId
-            if Connections.Esp[user] then continue end
+-- Visuals:AddToggle("Health", {
+--     Text = "Enable Healthbar",
+--     Default = false
+-- })
 
-            Connections.Esp = Connections.Esp or {}
-
-            Connections.Esp = RunService.Heartbeat:Connect(function()
-                
-                
-            end)
-
-            others.PlayerRemoving:Connect(function(leaving)
-                local leavingUser = leaving.UserId
-                if Connections.Esp[leavingUser] then
-                    Connections.Esp[leavingUser]:Disconnect()
-                    Connections.Esp[leavingUser] = nil
-                end
-            end)
-        end
-        task.wait()
-    end
-end
-
+-- Toggles.Health:OnChanged(function()
+--     if Toggles.Esp.Value then
+--         Esp.teamSettings.enemy.healthBar = true
+--     else
+--         Esp.teamSettings.enemy.healthBar = false
+--     end
+-- end)
 
 -- We can also get our Main tab via the following code:
 -- local LeftGroupBox = Window.Tabs.Main:AddLeftGroupbox('Groupbox')
