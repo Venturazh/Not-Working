@@ -227,7 +227,7 @@ function EspObject:Update()
 		self.distance = (camera.CFrame.p - head.Position).Magnitude;
 	end
 
-	if interface.sharedSettings.limitDistance and depth > interface.sharedSettings.maxDistance then
+	if interface.sharedSettings.limitDistance and self.distance > interface.sharedSettings.maxDistance then
 		self.onScreen = false;
 	end
 
