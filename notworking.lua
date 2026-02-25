@@ -220,29 +220,41 @@ NpcEsp:AddToggle('Npc', {
 
 Toggles.Npc:OnChanged(function()
     if Toggles.Npc.Value then
-
         local Liveplayers = {}
         for _, oplayer in pairs(game.Players:GetPlayers()) do
             Liveplayers[oplayer.Name] = true
         end
 
-            for _, alive in pairs(game.Workspace.Live:GetChildren()) do
-                if not Liveplayers[alive.Name] then
 
-                local NpcObjectEsp = EspManager.AddInstance(alive, {
-                    text = alive.Name .. " " .. "( " .. math.round(alive.Humanoid.Health) .. ' / ' .. alive.Humanoid.MaxHealth .. " ) " .. math.round((alive.Humanoid.Health / alive.Humanoid.MaxHealth) * 100) .. '%',
-                    textColor = { Color3.new(0, 0.882353, 1), 1 },
-                    limitDistance = true,
-                    maxDistance = 400,
-                })
-                table.insert(Npcs, NpcObjectEsp)
-                end    
-            end
+        for _, alive in pairs(game.Workspace.Live:GetChildren()) do
+            if not Liveplayers[alive.Name] then
+            -- if Connections.NpcEsp then continue end
+            
+            local NpcObjectEsp = EspManager.AddInstance(alive, {
+                text = alive.Name .. " " .. "( " .. math.round(alive.Humanoid.Health) .. ' / ' .. alive.Humanoid.MaxHealth .. " ) " .. math.round((alive.Humanoid.Health / alive.Humanoid.MaxHealth) * 100) .. '%',
+                textColor = { Color3.new(0, 0.882353, 1), 1 },
+                limitDistance = true,
+                maxDistance = 400,
+            })
+
+            Connections.NpcEsp = RunService.Heartbeat:Connect(function()
+                if alive and alive:FindFirstChild("Humanoid") then
+                    NpcObjectEsp.options.text = alive.Name .. " " .. "( " .. math.round(alive.Humanoid.Health) .. ' / ' .. alive.Humanoid.MaxHealth .. " ) " .. math.round((alive.Humanoid.Health / alive.Humanoid.MaxHealth) * 100) .. '%'
+                end
+            end)
+
+            table.insert(Npcs, NpcObjectEsp)
+            end    
+        end
+
+
+        
 
         game.Workspace.Live.ChildAdded:Connect(function()
             for _, alive in pairs(game.Workspace.Live:GetChildren()) do
                 if not Liveplayers[alive.Name] then
                 if EspManager._objectCache[alive] then return end
+                -- if Connections.NpcEsp2 then continue end
 
                 local NpcObjectEsp = EspManager.AddInstance(alive, {
                     text = alive.Name .. " " .. "( " .. math.round(alive.Humanoid.Health) .. ' / ' .. alive.Humanoid.MaxHealth .. " ) " .. math.round((alive.Humanoid.Health / alive.Humanoid.MaxHealth) * 100) .. '%',
@@ -250,6 +262,13 @@ Toggles.Npc:OnChanged(function()
                     limitDistance = true,
                     maxDistance = 400,
                 })
+
+                Connections.NpcEsp2 = RunService.Heartbeat:Connect(function()
+                    if alive and alive:FindFirstChild("Humanoid") then
+                        NpcObjectEsp.options.text = alive.Name .. " " .. "( " .. math.round(alive.Humanoid.Health) .. ' / ' .. alive.Humanoid.MaxHealth .. " ) " .. math.round((alive.Humanoid.Health / alive.Humanoid.MaxHealth) * 100) .. '%'
+                    end
+                end)
+
                 table.insert(Npcs, NpcObjectEsp)
                 end    
             end
@@ -264,8 +283,12 @@ Toggles.Npc:OnChanged(function()
             EspManager._objectCache[items] = nil
         end
 
-        if Connections.NpcHp then
-            Connections.NpcHp:Disconnect()
+        if Connections.NpcEsp then
+            Connections.NpcEsp:Disconnect()
+        end
+
+        if Connections.NpcEsp2 then
+            Connections.NpcEsp2:Disconnect()
         end
     end
 end)
