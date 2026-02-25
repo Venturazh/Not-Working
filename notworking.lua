@@ -380,6 +380,61 @@ Toggles.NoFall:OnChanged(function()
     end
 end)
 
+Self:AddToggle('NoClip', {
+    Text = 'NoClip',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
+})
+
+local partCache = {}
+
+function CheckPartNoclip(p)
+	for part,_ in next, partCache do
+		if p == part then
+			return
+		end
+	end
+	partCache[p] = {p.CanCollide, p.Transparency}
+	p.Transparency = 0.6
+	p.CanCollide = false
+end
+
+function UpdateNoclipCache(parts)
+	for part,colissionid in next, partCache do
+		for _,x in next, parts do
+			if x == part then
+				return
+			end
+		end
+		part.CanCollide = colissionid[1]
+		part.Transparency = colissionid[2]
+		partCache[part] = nil
+	end
+end
+
+Toggles.NoClip:OnChanged(function()
+    local offset = Vector3.new(2, 1, 2)
+    if Toggles.NoClip.Value then    
+        Connections.noclip = RunService.Heartbeat:Connect(function()
+            local Region = Region3.new(character.PrimaryPart.Position - offset, character.PrimaryPart.Position + offset)
+            local parts = workspace:FindPartsInRegion3WithIgnoreList(Region, {character}, 10000)
+            for _,v in next, parts do
+                CheckPartNoclip(v)
+            end
+            UpdateNoclipCache(parts)
+        end)
+    else
+        for part,colissionid in next, partCache do
+			part.CanCollide = colissionid[1]
+			part.Transparency = colissionid[2]
+			partCache[part] = nil
+		end
+        if Connections.noclip then
+            Connections.noclip:Disconnect()
+        end
+    end
+end)
+
 Espp:AddToggle('Box', {
     Text = 'Box',
     Default = false,
