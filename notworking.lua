@@ -412,7 +412,6 @@ Toggles.Npc:OnChanged(function()
                     limitDistance = true,
                     maxDistance = 400
                 })
-                AllObjects.teamSettings.enemy.box = Toggles.Npc.Value
                 table.insert(Npcs, AllObjects)
                 end
             end
