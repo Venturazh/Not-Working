@@ -403,18 +403,22 @@ Espp:AddToggle('Npc', {
 
 Toggles.Npc:OnChanged(function()
     if Toggles.Npc.Value then
+
+        local playerNames = {}
+        for _, player in pairs(game.Players:GetPlayers()) do
+            playerNames[player.Name] = true
+        end
+
         for _, alive in pairs(game.Workspace.Live:GetChildren()) do
-            for _, others in pairs(game.Players:GetPlayers()) do
-                if alive ~= others and alive ~= player then
-                local AllObjects = Esp.AddInstance(alive, {
-                    text = alive.Name,
-                    textColor = { Color3.new(1,1,1), 1 },
-                    limitDistance = true,
-                    maxDistance = 400
-                })
-                table.insert(Npcs, AllObjects)
-                end
-            end
+            if not playerNames[alive.Name] then
+            local AllObjects = Esp.AddInstance(alive, {
+                text = alive.Name,
+                textColor = { Color3.new(1,1,1), 1 },
+                limitDistance = true,
+                maxDistance = 400
+            })
+            table.insert(Npcs, AllObjects)
+            end    
         end
     else
         for _, instance in pairs(Npcs) do
