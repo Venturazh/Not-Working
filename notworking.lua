@@ -435,6 +435,49 @@ Toggles.NoClip:OnChanged(function()
     end
 end)
 
+local ConnectionCache = {}
+local function DisableChecks(instance, ...)
+	if #ConnectionCache > 0 then warn("ERROR IN DISABLING CHECK (CACHE)"); ConnectionCache = {}; end
+	local arg = {...}
+	for _,v in next, getconnections(instance.Changed) do
+		if v.Enabled then
+			v:Disable()
+			ConnectionCache[#ConnectionCache+1] = v
+		end
+	end
+	for _,prop in next, arg do
+		for _,v in next, getconnections(instance:GetPropertyChangedSignal(prop)) do
+			if v.Enabled then
+				v:Disable()
+				ConnectionCache[#ConnectionCache+1] = v
+			end
+		end
+	end
+end
+
+local function ReEnableChecks()
+	for _,v in next, ConnectionCache do
+		v:Enable()
+		ConnectionCache[_] = nil
+	end
+end
+
+local Atmosphere = game.Lighting:WaitForChild'Atmosphere'
+
+Self:AddToggle('NoFog', {
+    Text = 'NoFog',
+    Default = false,
+    Tooltip = 'Toggle To Enable Flying',
+})
+
+Toggles.NoFog:OnChanged(function()
+    if Toggles.NoFog.Value then
+        DisableChecks(Atmosphere, "Density")
+		Atmosphere.Density = 0
+		ReEnableChecks()
+    end
+end)
+
 Espp:AddToggle('Box', {
     Text = 'Box',
     Default = false,
