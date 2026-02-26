@@ -135,9 +135,23 @@ Toggles.SpeedHack:OnChanged(function()
     local Velo = root.AssemblyLinearVelocity
     if SpeedHack_Settings.Active then
         Connections.SpeedConn1 = RunService.Heartbeat:Connect(function()
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            -- if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            --     root.AssemblyLinearVelocity = root.CFrame.LookVector * SpeedHack_Settings.Value
+            -- end
+
+                local oscillation = math.round(humanoid.MoveDirection:Dot(root.CFrame.LookVector))
+                local flexion = math.round(humanoid.MoveDirection:Dot(root.CFrame.RightVector))
+
+                if oscillation == 1 then
+                print("Player is going forwards")
                 root.AssemblyLinearVelocity = root.CFrame.LookVector * SpeedHack_Settings.Value
-            end
+                elseif oscillation == -1 then
+                    print("Player is going backwards")
+                elseif flexion == 1 then
+                    print("Player is going right")
+                elseif flexion == -1 then
+                    print("Player is going left")
+                end
         end)
     else
         root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -467,11 +481,25 @@ Movement:AddToggle("SpeedHack", {
 
 Toggles.SpeedHack:OnChanged(function()
     SpeedHack_Settings.Active = Toggles.SpeedHack.Value
-    local Velo = root.AssemblyLinearVelocity
+
     if SpeedHack_Settings.Active then
         Connections.SpeedConn1 = RunService.Heartbeat:Connect(function()
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                root.AssemblyLinearVelocity = root.CFrame.LookVector * SpeedHack_Settings.Value
+
+            local oscillation = math.round(humanoid.MoveDirection:Dot(root.CFrame.LookVector))
+            local flexion = math.round(humanoid.MoveDirection:Dot(root.CFrame.RightVector))
+
+            if oscillation == 1 then
+            -- print("Player is going forwards")
+            root.AssemblyLinearVelocity = root.CFrame.LookVector * SpeedHack_Settings.Value
+            elseif oscillation == -1 then
+            -- print("Player is going backwards")
+            root.AssemblyLinearVelocity = -root.CFrame.LookVector * SpeedHack_Settings.Value
+            elseif flexion == 1 then
+            -- print("Player is going right")
+            root.AssemblyLinearVelocity = root.CFrame.RightVector * SpeedHack_Settings.Value
+            elseif flexion == -1 then
+            -- print("Player is going left")
+            root.AssemblyLinearVelocity = -root.CFrame.RightVector * SpeedHack_Settings.Value
             end
         end)
     else
@@ -479,7 +507,6 @@ Toggles.SpeedHack:OnChanged(function()
         if Connections.SpeedConn1 then
             Connections.SpeedConn1:Disconnect()
         end
-        SpeedHack_Settings.Value = Velo
     end
 end)
 
