@@ -15,6 +15,9 @@ local GeneralSettings = {
         Speed = 15,
         FlySpeed = 15
     },
+    Spoofer = {
+        NewAgility = 0
+    }
 
 }
 
@@ -170,6 +173,50 @@ MovementGroup:AddSlider("FlyMultiplier", {
 
 Options.FlyMultiplier:OnChanged(function()
     GeneralSettings.Movement.FlySpeed = Options.FlyMultiplier.Value
+end)
+
+MovementGroup:AddToggle("AgilitySpoof", {
+    Text = "Agility Spoofer",
+    Default = false,
+
+})
+
+Toggles.SpeedHack:OnChanged(function()
+    
+    local Live
+    local Agility
+    
+    local ok, result = pcall(function()
+        return Live = game.workspace:FindFirstChild("Live")
+    end)
+    
+    if ok then
+        Agility = Live[player.Name].PassiveAgility
+    end
+
+    
+    if Toggles.SpeedHack.Value then
+        if ok then
+            if Agility then
+                Agility.Value = GeneralSettings.Spoofer.NewAgility
+            end
+        end
+    else
+        Agility.Value = Agility.Value
+    end
+end)
+
+MovementGroup:AddSlider("AgilityValue", {
+    Text = "Agility Value",
+    Default = 100,
+    Min = 90, 
+    Max = 200,
+    Rounding = 1,
+    Compact = false
+})
+
+Options.AgilityValue:OnChanged(function()
+    GeneralSettings.Spoofer.NewAgility = Options.AgilityValue.Value
 end)
 
 -------------------------------------------------------------------------------------------
