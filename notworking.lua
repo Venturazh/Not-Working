@@ -16,13 +16,14 @@ local GeneralSettings = {
         FlySpeed = 15
     },
     Spoofer = {
-        NewAgility = 0
+        NewAgility = 0,
+        Original = 0,
     }
 
 }
 
 local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
-local EspLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/linemaster2/esp-library/main/library.lua"))();
+local EspLib = loadstring(game:HttpGet("https://github.com/Venturazh/Not-Working/raw/refs/heads/main/EspLibrary.lua"))();
 
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
@@ -181,28 +182,26 @@ MovementGroup:AddToggle("AgilitySpoof", {
 
 })
 
-Toggles.SpeedHack:OnChanged(function()
+Toggles.AgilitySpoof:OnChanged(function()
     
     local Live
     local Agility
     
     local ok, result = pcall(function()
-        return Live = game.workspace:FindFirstChild("Live")
+        Live = game.workspace:FindFirstChild("Live")
     end)
     
-    if ok then
+    if ok and Live then
         Agility = Live[player.Name].PassiveAgility
     end
-
     
-    if Toggles.SpeedHack.Value then
-        if ok then
-            if Agility then
-                Agility.Value = GeneralSettings.Spoofer.NewAgility
-            end
+    if Agility then
+        GeneralSettings.Spoofer.Original = Agility.Value
+        if Toggles.AgilitySpoof.Value then
+            Agility.Value = GeneralSettings.Spoofer.NewAgility
+        else
+            Agility.Value = GeneralSettings.Spoofer.Original
         end
-    else
-        Agility.Value = Agility.Value
     end
 end)
 
