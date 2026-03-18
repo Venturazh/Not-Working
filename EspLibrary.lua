@@ -30,7 +30,7 @@ local GeneralSettings = {
 }
 
 local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
-local EspLib = loadstring(game:HttpGet("https://github.com/Venturazh/Not-Working/raw/refs/heads/main/EspLibrary.lua"))();
+-- local EspLib = loadstring(game:HttpGet("https://github.com/Venturazh/EspLib/raw/refs/heads/main/EspLib.lua"))(); --Replace EspLib Currently Broken
 
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
@@ -224,42 +224,42 @@ end)
 
 -------------------------------------------------------------------------------------------
 
-EspGroup:AddToggle("Esp", {
-    Text = 'Enable Esp',
-    Default = false
-}):AddKeyPicker("Enable Esp", {
-    Default = "E",
-    SyncToggleState = true,
-    Mode = "Toggle",
-    Text = "Esp Keybind",
-    NoUi = false
-})
+-- EspGroup:AddToggle("Esp", {
+--     Text = 'Enable Esp',
+--     Default = false
+-- }):AddKeyPicker("Enable Esp", {
+--     Default = "E",
+--     SyncToggleState = true,
+--     Mode = "Toggle",
+--     Text = "Esp Keybind",
+--     NoUi = false
+-- })
 
-Toggles.Esp:OnChanged(function()
-    if Toggles.Esp.Value then
-        EspLib.Enabled = true
-        EspLib.ShowBox = true
-        EspLib.BoxType = "2D"
-        EspLib.ShowName = true
-        EspLib.ShowHealth = true
-        EspLib.ShowDistance = true
-    else
-        EspLib.Enabled = false
-    end
-end)
+-- Toggles.Esp:OnChanged(function()
+--     if Toggles.Esp.Value then
+--         EspLib.Enabled = true
+--         EspLib.ShowBox = true
+--         EspLib.BoxType = "2D"
+--         EspLib.ShowName = true
+--         EspLib.ShowHealth = true
+--         EspLib.ShowDistance = true
+--     else
+--         EspLib.Enabled = false
+--     end
+-- end)
 
-EspGroup:AddToggle("Tracer", {
-    Text = 'Enable Tracers',
-    Default = false
-})
+-- EspGroup:AddToggle("Tracer", {
+--     Text = 'Enable Tracers',
+--     Default = false
+-- })
 
-Toggles.Tracer:OnChanged(function()
-    if Toggles.Tracer.Value then
-        EspLib.ShowTracer = true
-    else
-        EspLib.ShowTracer = false
-    end
-end)
+-- Toggles.Tracer:OnChanged(function()
+--     if Toggles.Tracer.Value then
+--         EspLib.ShowTracer = true
+--     else
+--         EspLib.ShowTracer = false
+--     end
+-- end)
 
 local nofog = Removals:AddButton({
     Text = "Fog Removal",
