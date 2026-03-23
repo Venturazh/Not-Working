@@ -1,361 +1,350 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:FindFirstChildOfClass("Humanoid")
-local root = character:FindFirstChild("HumanoidRootPart")
-local camera = game.Workspace.CurrentCamera
+local player = game:GetService("Players").LocalPlayer
+local character, root, humanoid
+local function Update()
+    character = player.Character or player.CharacterAdded:Wait()
+    humanoid = character:WaitForChild("Humanoid")
+    root = character:WaitForChild("HumanoidRootPart")
+end
+
+Update()
+
+player.CharacterAdded:Connect(function()
+    for i, v in next, getgenv().Connections do
+        if v then
+            v:Disconnect()
+        end
+    end
+    Update()
+end)
+
+local camera = workspace.CurrentCamera
 
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Vim = game:GetService("VirtualInputManager")
-local Lighting = game:GetService("Lighting")
+local UIS = game:GetService("UserInputService")
 
-local Connections = {}
-local GeneralSettings = {
-    Movement = {
-        Speed = 15,
-        FlySpeed = 15
-    },
-    Spoofer = {
-        NewAgility = 0,
-        Original = 0,
-    }
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local Options = Library.Options
+local Toggles = Library.Toggles
 
-}
+local Sense = loadstring(game:HttpGet('https://sirius.menu/sense'))()
+Sense.sharedSettings.limitDistance = true
 
-local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
-local EspLib = loadstring(game:HttpGet("https://github.com/Venturazh/Not-Working/raw/refs/heads/main/EspLibrary.lua"))();
-
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
-local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
-local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
 local Window = Library:CreateWindow({
-    Title = 'Currently Offline',
-    Center = true,
-    AutoShow = true,
-    TabPadding = 8,
-    MenuFadeTime = 0.2
+    Title = "Not Found",
+    Footer = "version: 0.0.1",
+    Icon = nil,
+    NotifySide = "Right",
 })
-
+ 
 local Tabs = {
-    Main = Window:AddTab('Main'),
+    Main = Window:AddTab("Main"),
     Visuals = Window:AddTab("Visuals"),
-    ['UI Settings'] = Window:AddTab('UI Settings'),
+    Movement = Window:AddTab("Movement"),
+    Combat = Window:AddTab("Combat"),
+    ["UI Settings"] = Window:AddTab("UI Settings")
 }
 
-local MovementGroup = Tabs.Main:AddLeftGroupbox('Movement')
-local EspGroup = Tabs.Visuals:AddLeftGroupbox("Esp")
-local Removals = Tabs.Visuals:AddRightGroupbox("Removals")
-local Others = Tabs.Visuals:AddRightGroupbox("Others")
 
-MovementGroup:AddToggle("SpeedHack", {
-    Text = "Speed Hack",
+getgenv().Connections = {}
+getgenv().General = {
+    Speed = {
+        Current = 0,
+        Type = "Velocity",
+        Default = humanoid.WalkSpeed
+    },
+    Aimbot = {
+        Active = false
+    },
+    Desync = {
+        Type = "UnderGround"
+    }
+}
+
+local Movement = Tabs.Movement:AddLeftGroupbox("Movement", "wind")
+Movement:AddToggle("Speed", {
+	Text = "Enable Speed",
+	Default = false
+})
+
+Toggles.Speed:AddKeyPicker("SpeedKey", {
+	Text = "Speed Keybind",
+	Default = "Q",
+	Mode = "Hold",
+	SyncToggleState = false,
+
+})
+
+Toggles.Speed:OnChanged(function(active)
+	if active then
+		if getgenv().General.Speed.Type == "Velocity" then
+            getgenv().Connections.Speed = RunService.Heartbeat:Connect(function()
+				local state = Options.SpeedKey:GetState()
+				if state then
+                    local look = humanoid.MoveDirection:Dot(root.CFrame.LookVector)
+                    local right = humanoid.MoveDirection:Dot(root.CFrame.RightVector)
+                    local velocity = Vector3.zero
+
+                    if math.abs(look) > 0.1 then
+                        velocity += root.CFrame.LookVector * look * getgenv().General.Speed.Current
+                    end
+                    if math.abs(right) > 0.1 then
+                        velocity += root.CFrame.RightVector * right * getgenv().General.Speed.Current
+                    end
+
+                    if velocity.Magnitude > 0 then
+                        root.AssemblyLinearVelocity = Vector3.new(velocity.X, root.AssemblyLinearVelocity.Y, velocity.Z)
+                    end
+                end
+			end)
+		end
+	else
+		if getgenv().Connections.Speed then
+        	getgenv().Connections.Speed:Disconnect()
+            getgenv().Connections.Speed = nil
+        end
+	end
+end)
+
+Movement:AddSlider("SpeedAmount", {
+	Text = "Speed Amount",
+	Default = 0,
+	Min = 0,
+	Max = 250,
+	Rounding = 0
+})
+
+Options.SpeedAmount:OnChanged(function()
+	getgenv().General.Speed.Current = Options.SpeedAmount.Value
+end)
+
+local Visuals = Tabs.Visuals:AddLeftGroupbox("Visuals", "eye")
+Visuals:AddToggle("Esp", {
+    Text = "Enable Esp",
     Default = false,
-
-}):AddKeyPicker("Speed Key", {
-    Default = "G",
-    SyncToggleState = true,
-    Mode = "Toggle",
-    Text = "Speed Keybind",
-    NoUi = false
-})
-
-Toggles.SpeedHack:OnChanged(function()
-    if Toggles.SpeedHack.Value then
-        Connections.SpeedConn = RunService.Heartbeat:Connect(function()
-            
-            --TODO: Fix getting stuck on walls if you run into them
-
-
-            local Look = humanoid.MoveDirection:Dot(root.CFrame.LookVector) --LookVector dot product
-            local Right = humanoid.MoveDirection:Dot(root.CFrame.RightVector) --RightVector dot product
-
-            local velocity = Vector3.zero
-
-            if math.abs(Look) > 0.1 then --checks to make sure mouse noise doesn't apply velocity
-                velocity += root.CFrame.LookVector * Look * GeneralSettings.Movement.Speed
-            end
-            if math.abs(Right) > 0.1 then --same here
-                velocity += root.CFrame.RightVector * Right * GeneralSettings.Movement.Speed
-            end
-
-            if velocity.Magnitude > 0 then --if moving apply velocity
-                root.AssemblyLinearVelocity = Vector3.new(velocity.X, root.AssemblyLinearVelocity.Y, velocity.Z)
-            end
-
-            print(root.AssemblyLinearVelocity.Y)
-
-
-        end)
-    else
-        if Connections.SpeedConn then
-            Connections.SpeedConn:Disconnect()
-        end
-    end
-end)
-
-MovementGroup:AddSlider("SpeedMultiplier", {
-    Text = "Speed Multiplier",
-    Default = 100,
-    Min = 90, 
-    Max = 350,
-    Rounding = 1,
-    Compact = false
-})
-
-Options.SpeedMultiplier:OnChanged(function()
-    GeneralSettings.Movement.Speed = Options.SpeedMultiplier.Value / 5
-end)
-
-
-MovementGroup:AddToggle("Fly", {
-    Text = "Fly",
-    Default = false,
-
-}):AddKeyPicker("Fly Key", {
-    Default = "F",
-    SyncToggleState = true,
-    Mode = "Toggle",
-    Text = "Fly Keybind",
-    NoUi = false
-})
-
-local LinearVelocity, Attachment = nil
-
-Toggles.Fly:OnChanged(function()
-    if Toggles.Fly.Value then
-
-        LinearVelocity = Instance.new("LinearVelocity")
-        Attachment = Instance.new("Attachment")
-
-        Connections.FlyConn = RunService.Heartbeat:Connect(function()
-            local move = Vector3.zero
-
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then move += camera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then move -= camera.CFrame.LookVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then move -= camera.CFrame.RightVector end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
-
-            if move.Magnitude > 0 then
-                move = move.Unit * GeneralSettings.Movement.FlySpeed
-            end
-
-            LinearVelocity.VectorVelocity = move
-        end)
-
-        Attachment.Parent = root
-        LinearVelocity.Parent = root
-        LinearVelocity.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
-        LinearVelocity.MaxForce = 100000
-        LinearVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
-        LinearVelocity.Attachment0 = Attachment
-    else
-
-        if Connections.FlyConn then
-            Connections.FlyConn:Disconnect()
-        end
-        if LinearVelocity then
-            LinearVelocity:Destroy()
-        end 
-        if Attachment then
-            Attachment:Destroy()
-        end
-    end
-end)
-
-MovementGroup:AddSlider("FlyMultiplier", {
-    Text = "Fly Multiplier",
-    Default = 100,
-    Min = 90, 
-    Max = 350,
-    Rounding = 1,
-    Compact = false
-})
-
-Options.FlyMultiplier:OnChanged(function()
-    GeneralSettings.Movement.FlySpeed = Options.FlyMultiplier.Value
-end)
-
-MovementGroup:AddToggle("AgilitySpoof", {
-    Text = "Agility Spoofer",
-    Default = false,
-
-})
-
-Toggles.AgilitySpoof:OnChanged(function()
-    
-    local Live
-    local Agility
-    
-    local ok, result = pcall(function()
-        Live = game.workspace:FindFirstChild("Live")
-    end)
-    
-    if ok and Live then
-        Agility = Live[player.Name].PassiveAgility
-    end
-    
-    if Agility then
-        GeneralSettings.Spoofer.Original = Agility.Value
-        if Toggles.AgilitySpoof.Value then
-            Agility.Value = GeneralSettings.Spoofer.NewAgility
-        else
-            Agility.Value = GeneralSettings.Spoofer.Original
-        end
-    end
-end)
-
-MovementGroup:AddSlider("AgilityValue", {
-    Text = "Agility Value",
-    Default = 100,
-    Min = 90, 
-    Max = 200,
-    Rounding = 1,
-    Compact = false
-})
-
-Options.AgilityValue:OnChanged(function()
-    GeneralSettings.Spoofer.NewAgility = Options.AgilityValue.Value
-end)
-
--------------------------------------------------------------------------------------------
-
-EspGroup:AddToggle("Esp", {
-    Text = 'Enable Esp',
-    Default = false
-}):AddKeyPicker("Enable Esp", {
-    Default = "E",
-    SyncToggleState = true,
-    Mode = "Toggle",
-    Text = "Esp Keybind",
-    NoUi = false
 })
 
 Toggles.Esp:OnChanged(function()
-    if Toggles.Esp.Value then
-        EspLib.Enabled = true
-        EspLib.ShowBox = true
-        EspLib.BoxType = "Corner Box Esp"
-        EspLib.ShowName = true
-        EspLib.ShowHealth = true
-        EspLib.ShowDistance = true
-    else
-        EspLib.Enabled = false
-    end
+    Sense.teamSettings.enemy.enabled = Toggles.Esp.Value
+    Sense.teamSettings.enemy.box = Toggles.Esp.Value
+    Sense.teamSettings.enemy.boxColor[1] = Color3.new(1, 1, 1)
+    Sense.teamSettings.enemy.healthBar = Toggles.Esp.Value
+    Sense.teamSettings.enemy.name = Toggles.Esp.Value
 end)
 
-EspGroup:AddToggle("Tracer", {
-    Text = 'Enable Tracers',
-    Default = false
+Visuals:AddToggle("Tracer", {
+    Text = "Enable Tracers",
+    Default = false,
 })
 
 Toggles.Tracer:OnChanged(function()
-    if Toggles.Tracer.Value then
-        EspLib.ShowTracer = true
+    Sense.teamSettings.enemy.tracer = Toggles.Tracer.Value
+end)
+
+Visuals:AddToggle("Chams", {
+    Text = "Enable Chams",
+    Default = false,
+})
+
+Toggles.Chams:OnChanged(function()
+    Sense.teamSettings.enemy.chams = Toggles.Chams.Value
+    Sense.teamSettings.enemy.chamsOutlineColor = { Color3.new(0.886274, 0.537254, 0.537254), 0 }
+end)
+
+Visuals:AddSlider("Render", {
+    Text = "Render Distance",
+    Default = 5000,
+    Min = 1000, 
+    Max = 10000,
+    Rounding = 0,
+    Compact = false
+})
+
+Options.Render:OnChanged(function()
+    Sense.sharedSettings.maxDistance = Options.Render.Value
+end)
+
+local Aimbot = Tabs.Combat:AddLeftGroupbox("Aimbot")
+local Desync = Tabs.Combat:AddRightGroupbox("Desync")
+
+Aimbot:AddToggle("Aimbot", {
+    Text = "Enable Aimbot",
+    Default = false
+})
+
+Toggles.Aimbot:AddKeyPicker("Aimbot",{
+	Default = "E",
+    SyncToggleState = false,
+    Mode = "Hold",
+    Text = "Aimbot Keybind",
+    NoUI = false
+})
+
+local function TeamCheck(toggled : boolean, key : Player)
+    if toggled then
+        if key.Team ~= player.Team then
+            return true
+        else
+            return false
+        end
     else
-        EspLib.ShowTracer = false
+        return false
+    end
+end
+
+local function GetClosestPlayer()
+    local closestDistance = math.huge
+    local closestPlayer = nil
+
+    for _, v in next, game.Players:GetPlayers() do
+        local char = v.Character
+        if not char then return end
+
+        if char:FindFirstChildOfClass("Humanoid") and char:FindFirstChildOfClass("Humanoid").Health > 0 and v ~= player then
+            local vector, onScreen = camera.worldToScreenPoint(camera, char:FindFirstChild("HumanoidRootPart").Position)
+            local distance = (Vector2.new(UIS.GetMouseLocation(UIS).X, UIS.GetMouseLocation(UIS).Y) - Vector2.new(vector.X, vector.Y)).Magnitude
+            --and TeamCheck(true, v)
+            if distance < closestDistance and onScreen and distance < 250 then
+                closestDistance = distance
+                closestPlayer = v
+            end
+        end
+    end
+
+    if closestPlayer then
+        local head = closestPlayer.Character:FindFirstChild("Head")
+        if not head then return end
+
+        local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
+        if not headPos then return end
+
+        local mousePos = UIS.GetMouseLocation(UIS)
+
+        local deltaX = headPos.X - mousePos.X
+        local deltaY = headPos.Y - mousePos.Y
+
+        mousemoverel(deltaX, deltaY)
+    end
+end
+
+Toggles.Aimbot:OnChanged(function()
+    if Toggles.Aimbot.Value then
+        getgenv().Connections.Aimbot = RunService.Heartbeat:Connect(function()
+            local state = Options.Aimbot:GetState()
+            if state then
+                GetClosestPlayer()
+            end
+        end)
+    else
+        if getgenv().Connections.Aimbot then
+            getgenv().Connections.Aimbot:Disconnect()
+        end
     end
 end)
 
-local nofog = Removals:AddButton({
-    Text = "Fog Removal",
-    Func = function()
-        Lighting.FogEnd = 1e10
-        Lighting.FogStart = 1e10
-    end,
+Desync:AddToggle("Desync", {
+    Text = "Enable Desync",
+    Default = false
 })
 
-local FullBright = Removals:AddButton({
-    Text = "Full Bright",
-    Func = function()
-        Lighting.Brightness = 5
-        Lighting.ClockTime = 12
-        Lighting.FogEnd = 1e10
-        Lighting.GlobalShadows = false
-        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-    end,
+Toggles.Desync:AddKeyPicker("Desync",
+{
+	Default = "X",
+    SyncToggleState = true,
+    Mode = "Toggle",
+    Text = "Desync Keybind",
+    NoUI = false
 })
 
--------TODO: Finish Spectate And Make Ts Work This Is Some Bull Shit Ts PMO
--- local function GetAllPlayers()
---     local List = {}
---     for _, player in pairs(game.Players:GetPlayers()) do
---         table.insert(List, player)
---     end
---     return List
--- end
+local hook
+Toggles.Desync:OnChanged(function()
+    if Toggles.Desync.Value then
+        if getgenv().General.Desync.Type == "UnderGround" then
+            local desyncOffset
 
+            getgenv().Connections.Desync = RunService.Heartbeat:Connect(function()
+                if not root or not root.Parent then return end
+                pcall(function()
+                    local offset = CFrame.new(0, -6.4, 0)
+                    desyncOffset = root.CFrame
+                    local newCframe = desyncOffset * offset
+                    root.CFrame = newCframe
+                    RunService.RenderStepped:Wait()
+                    root.CFrame = desyncOffset
+                end)
+            end)
+            hook = hookmetamethod(game, "__index", newcclosure(function(self, key)
+                if key == "CFrame" and self == player.Character.HumanoidRootPart and not checkcaller() and player.Character then
+                    return desyncOffset
+                end
+                return hook(self, key)
+            end))
+        elseif getgenv().General.Desync.Type == "Random" then
+            local desyncOffset
 
--- local function Spectate()
---     local players = GetAllPlayers()
---     print(players.Name)
--- end
+            workspace.FallenPartsDestroyHeight=0/0
 
+            getgenv().Connections.Desync = RunService.Heartbeat:Connect(function()
+                if not root or not root.Parent then return end
+                pcall(function()
+                    workspace.FallenPartsDestroyHeight=0/0
 
--- Others:AddDropdown("Spectate", {
---     Values = {"Hello", "Hi", "Hey"},
---     Default = 1,
---     Multi = false,
-
---     Text = "Players",
-
--- })
-
--- Options.Spectate:OnChanged(function()
---     Spectate()
--- end)
-
-Library:SetWatermarkVisibility(false)
-
-local FrameTimer = tick()
-local FrameCounter = 0;
-local FPS = 60;
-
-local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(function()
-    FrameCounter += 1;
-
-    if (tick() - FrameTimer) >= 1 then
-        FPS = FrameCounter;
-        FrameTimer = tick();
-        FrameCounter = 0;
-    end;
-
-    -- Library:SetWatermark(('No Name | %s fps | %s ms'):format(
-    --     math.floor(FPS),
-    --     math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
-    -- ));
-end);
-
-
-
-Library:OnUnload(function()
-    WatermarkConnection:Disconnect()
-
-    print('Unloaded!')
-    Library.Unloaded = true
+                    local offset = CFrame.new(
+                        root.CFrame.X * math.random(1, 15), 
+                        root.CFrame.Y * math.random(1, 15), 
+                        root.CFrame.Z * math.random(1, 15)
+                    )
+                    desyncOffset = root.CFrame
+                    local newCframe = desyncOffset * offset
+                    root.CFrame = newCframe
+                    RunService.RenderStepped:Wait()
+                    root.CFrame = desyncOffset
+                end)
+            end)
+            hook = hookmetamethod(game, "__index", newcclosure(function(self, key)
+                if key == "CFrame" and self == player.Character.HumanoidRootPart and not checkcaller() and player.Character then
+                    return desyncOffset
+                end
+                return hook(self, key)
+            end))
+        end
+    else
+        if getgenv().Connections.Desync then
+            getgenv().Connections.Desync:Disconnect()
+        end
+        if hook then
+            hookmetamethod(game, "__index", hook)
+            hook = nil
+        end
+    end
 end)
 
-local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+Desync:AddDropdown("DesyncTypes", {
+    Values = {"UnderGround", "Random"},
+    Default = 1,
+    Multi = false,
 
-MenuGroup:AddButton('Unload', function() Library:Unload() end)
-MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'Home', NoUI = true, Text = 'Menu keybind' })
-MenuGroup:AddToggle('Keybinds', { Text = "Keybinds Menu", Default = false })
-Toggles.Keybinds:OnChanged(function() Library.KeybindFrame.Visible = Toggles.Keybinds.Value end)
+    Text = 'Desync Type'
+})
 
-Library.ToggleKeybind = Options.MenuKeybind
+Options.DesyncTypes:OnChanged(function()
+    getgenv().General.Desync.Type = Options.DesyncTypes.Value
+end)
+
+
+Sense.Load()
 
 ThemeManager:SetLibrary(Library)
+ThemeManager:SetFolder("MyScriptHub")
+ThemeManager:ApplyToTab(Tabs["UI Settings"])
+ThemeManager:LoadDefault()
 SaveManager:SetLibrary(Library)
-
 SaveManager:IgnoreThemeSettings()
-
-SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
-
-ThemeManager:SetFolder('MyScriptHub')
-SaveManager:SetFolder('MyScriptHub/specific-game')
-
-SaveManager:BuildConfigSection(Tabs['UI Settings'])
-
-ThemeManager:ApplyToTab(Tabs['UI Settings'])
-
+SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+SaveManager:SetFolder("MyScriptHub/specific-game")
+SaveManager:SetSubFolder("Lobby")
+SaveManager:BuildConfigSection(Tabs["UI Settings"])
 SaveManager:LoadAutoloadConfig()
