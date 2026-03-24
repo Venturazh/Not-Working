@@ -57,12 +57,15 @@ getgenv().General = {
         Default = humanoid.WalkSpeed
     },
     Aimbot = {
-        Active = false
+        Active = false,
+        Sticky = false
     },
     Desync = {
         Type = "UnderGround"
     }
 }
+
+local lockedTarget = nil
 
 local Movement = Tabs.Movement:AddLeftGroupbox("Movement", "wind")
 Movement:AddToggle("Speed", {
@@ -156,9 +159,9 @@ end)
 
 Visuals:AddSlider("Render", {
     Text = "Render Distance",
-    Default = 5000,
-    Min = 1000, 
-    Max = 10000,
+    Default = 50000,
+    Min = 0, 
+    Max = 100000,
     Rounding = 0,
     Compact = false
 })
@@ -198,7 +201,7 @@ end
 local function GetClosestPlayer()
     local closestDistance = math.huge
     local closestPlayer = nil
-
+    
     for _, v in next, game.Players:GetPlayers() do
         local char = v.Character
         if not char then return end
@@ -207,27 +210,29 @@ local function GetClosestPlayer()
             local vector, onScreen = camera.worldToScreenPoint(camera, char:FindFirstChild("HumanoidRootPart").Position)
             local distance = (Vector2.new(UIS.GetMouseLocation(UIS).X, UIS.GetMouseLocation(UIS).Y) - Vector2.new(vector.X, vector.Y)).Magnitude
             --and TeamCheck(true, v)
-            if distance < closestDistance and onScreen and distance < 250 then
+            if distance < closestDistance and onScreen and distance < 250  then
                 closestDistance = distance
                 closestPlayer = v
             end
         end
     end
 
-    if closestPlayer then
-        local head = closestPlayer.Character:FindFirstChild("Head")
-        if not head then return end
+    return closestPlayer
+end
 
-        local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
-        if not headPos then return end
+local function AimlockTarget(target)
+    local head = target.Character:FindFirstChild("Head")
+    if not head then return end
 
-        local mousePos = UIS.GetMouseLocation(UIS)
+    local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
+    if not headPos then return end
 
-        local deltaX = headPos.X - mousePos.X
-        local deltaY = headPos.Y - mousePos.Y
+    local mousePos = UIS.GetMouseLocation(UIS)
 
-        mousemoverel(deltaX, deltaY)
-    end
+    local deltaX = headPos.X - mousePos.X
+    local deltaY = headPos.Y - mousePos.Y
+
+    mousemoverel(deltaX, deltaY)
 end
 
 Toggles.Aimbot:OnChanged(function()
@@ -235,15 +240,41 @@ Toggles.Aimbot:OnChanged(function()
         getgenv().Connections.Aimbot = RunService.Heartbeat:Connect(function()
             local state = Options.Aimbot:GetState()
             if state then
-                GetClosestPlayer()
+                local keepTarget = Toggles.StickyAim.Value 
+                    and lockedTarget ~= nil
+                    and lockedTarget.Character ~= nil
+                    and lockedTarget.Character:FindFirstChildOfClass("Humanoid") ~= nil
+                    and lockedTarget.Character:FindFirstChildOfClass("Humanoid").Health > 0
+
+                if not keepTarget then
+                    lockedTarget = GetClosestPlayer()
+                end
+            else
+                lockedTarget = nil
+            end
+
+            if state and lockedTarget then
+                AimlockTarget(lockedTarget)
             end
         end)
     else
         if getgenv().Connections.Aimbot then
             getgenv().Connections.Aimbot:Disconnect()
         end
+        lockedTarget = nil
     end
 end)
+
+Aimbot:AddToggle("StickyAim", {
+    Text = "Sticky Aim",
+    Default = false
+})
+
+Toggles.StickyAim:OnChanged(function()
+    getgenv().General.Aimbot.Sticky = Toggles.StickyAim.Value
+end)
+
+
 
 Desync:AddToggle("Desync", {
     Text = "Enable Desync",
@@ -333,6 +364,40 @@ Desync:AddDropdown("DesyncTypes", {
 Options.DesyncTypes:OnChanged(function()
     getgenv().General.Desync.Type = Options.DesyncTypes.Value
 end)
+
+
+Aimbot:AddToggle("Orbit", {
+    Text = "Orbit",
+    Default = false
+})
+
+Toggles.Orbit:AddKeyPicker("Orbit", {
+    Default = "Z",
+    SyncToggleState = true,
+    Mode = "Toggle",
+    Text = "Orbit Keybind",
+    NoUI = false
+})
+
+
+Toggles.Orbit:OnChanged(function()
+    if Toggles.Orbit.Value then
+        getgenv().Connections.Orbit = RunService.Heartbeat:Connect(function()
+            local state = Options.Orbit:GetState()
+            if state then
+                local closestPlayer = GetClosestPlayer()
+                if closestPlayer then
+                    
+                end
+            end
+        end)
+    else
+        if getgenv().Connections.Orbit then
+            getgenv().Connections.Orbit:Disconnect()
+        end
+    end
+end)
+
 
 
 Sense.Load()
