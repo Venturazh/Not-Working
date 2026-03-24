@@ -61,7 +61,9 @@ getgenv().General = {
         Sticky = false
     },
     Desync = {
-        Type = "UnderGround"
+        Type = "UnderGround",
+        Desync = false,
+        Desync1 = false 
     }
 }
 
@@ -295,7 +297,6 @@ Toggles.Desync:OnChanged(function()
     if Toggles.Desync.Value then
         if getgenv().General.Desync.Type == "UnderGround" then
             local desyncOffset
-
             getgenv().Connections.Desync = RunService.Heartbeat:Connect(function()
                 if not root or not root.Parent then return end
                 pcall(function()
@@ -373,8 +374,8 @@ Aimbot:AddToggle("Orbit", {
 
 Toggles.Orbit:AddKeyPicker("Orbit", {
     Default = "Z",
-    SyncToggleState = true,
-    Mode = "Toggle",
+    SyncToggleState = false,
+    Mode = "Hold",
     Text = "Orbit Keybind",
     NoUI = false
 })
@@ -382,12 +383,56 @@ Toggles.Orbit:AddKeyPicker("Orbit", {
 
 Toggles.Orbit:OnChanged(function()
     if Toggles.Orbit.Value then
+        for _, v in pairs(game:GetService("Players").LocalPlayer.Character:GetChildren()) do
+            if v:IsA("Script") and v.Name ~= "Health" and v.Name ~= "Sound" and v:FindFirstChild("LocalScript") then
+                v:Destroy()
+            end
+        end
+
+        game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
+            repeat
+                task.wait()
+            until game:GetService("Players").LocalPlayer.Character
+            char.ChildAdded:Connect(function(child)
+                if child:IsA("Script") then 
+                    task.wait(0.25)
+                    if child:FindFirstChild("LocalScript") then
+                        child.LocalScript:FireServer()
+                    end
+                end
+            end)
+        end)
+
         getgenv().Connections.Orbit = RunService.Heartbeat:Connect(function()
             local state = Options.Orbit:GetState()
             if state then
                 local closestPlayer = GetClosestPlayer()
-                if closestPlayer then
-                    
+                if closestPlayer and closestPlayer.Character then
+
+                    -- AimlockTarget(closestPlayer)
+
+                    if getgenv().General.Desync.Desync then
+                        local CurrentVelocity = root.Velocity
+                        root.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0),0)
+                        root.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0.01),0)
+                        root.Velocity = Vector3.new(3000, 3000 ,3000)
+                        RunService.RenderStepped:Wait()
+                        root.Velocity = CurrentVelocity
+                    end
+
+                    task.wait(0.1)
+                    getgenv().General.Desync.Desync = false
+                    task.wait(0.1)
+                    getgenv().General.Desync.Desync1 = true
+
+                    if getgenv().General.Desync.Desync1 then
+                        local CurrentVelocity = game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0),0)
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0.01),0)
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(math.random(3000),math.random(3000),math.random(3000))
+                        game.RunService.RenderStepped:Wait()
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = CurrentVelocity
+                    end
                 end
             end
         end)
