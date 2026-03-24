@@ -200,10 +200,15 @@ local function TeamCheck(toggled : boolean, key : Player)
     end
 end
 
+local sticky
 local function GetClosestPlayer()
     local closestDistance = math.huge
     local closestPlayer = nil
-    
+
+    if getgenv().General.Aimbot.Sticky then
+        if sticky then return end
+    end
+
     for _, v in next, game.Players:GetPlayers() do
         local char = v.Character
         if not char then return end
@@ -219,8 +224,27 @@ local function GetClosestPlayer()
         end
     end
 
+    if closestPlayer then
+        local head = closestPlayer.Character:FindFirstChild("Head")
+        if not head then return end
+
+        local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
+        if not headPos then return end
+
+        local mousePos = UIS.GetMouseLocation(UIS)
+
+        local deltaX = headPos.X - mousePos.X
+        local deltaY = headPos.Y - mousePos.Y
+
+        mousemoverel(deltaX, deltaY)
+        sticky = true
+    else
+        sticky = false
+    end
+
     return closestPlayer
 end
+
 
 local function AimlockTarget(target)
     local head = target.Character:FindFirstChild("Head")
@@ -253,10 +277,13 @@ Toggles.Aimbot:OnChanged(function()
                 end
             else
                 lockedTarget = nil
+                sticky = false
             end
 
             if state and lockedTarget then
                 AimlockTarget(lockedTarget)
+            else
+                sticky = false
             end
         end)
     else
@@ -264,6 +291,7 @@ Toggles.Aimbot:OnChanged(function()
             getgenv().Connections.Aimbot:Disconnect()
         end
         lockedTarget = nil
+        sticky = false
     end
 end)
 
@@ -406,34 +434,37 @@ Toggles.Orbit:OnChanged(function()
         getgenv().Connections.Orbit = RunService.Heartbeat:Connect(function()
             local state = Options.Orbit:GetState()
             if state then
-                local closestPlayer = GetClosestPlayer()
-                if closestPlayer and closestPlayer.Character then
+                pcall(function()
+                    local closestPlayer = GetClosestPlayer()
+                    if closestPlayer and closestPlayer.Character then
+                        AimlockTarget(closestPlayer)
 
-                    -- AimlockTarget(closestPlayer)
+                        if getgenv().General.Desync.Desync then
+                            local CurrentVelocity = root.Velocity
+                            root.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0),0)
+                            root.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0.01),0)
+                            root.Velocity = Vector3.new(3000, 3000 ,3000)
+                            RunService.RenderStepped:Wait()
+                            root.Velocity = CurrentVelocity
+                            root.CFrame = CFrame.lookAt(root.Position, Vector3.new(closestPlayer.Character.HumanoidRootPart.Position.X, root.Position.Y, closestPlayer.Character.HumanoidRootPart.Position.Z))
+                        end
 
-                    if getgenv().General.Desync.Desync then
-                        local CurrentVelocity = root.Velocity
-                        root.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0),0)
-                        root.CFrame = closestPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0.01),0)
-                        root.Velocity = Vector3.new(3000, 3000 ,3000)
-                        RunService.RenderStepped:Wait()
-                        root.Velocity = CurrentVelocity
+                        task.wait(0.1)
+                        getgenv().General.Desync.Desync = false
+                        task.wait(0.1)
+                        getgenv().General.Desync.Desync1 = true
+
+                        if getgenv().General.Desync.Desync1 then
+                            local CurrentVelocity = game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity
+                            root.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0),0)
+                            root.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0.01),0)
+                            root.AssemblyLinearVelocity = Vector3.new(math.random(3000),math.random(3000),math.random(3000))
+                            game.RunService.RenderStepped:Wait()
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = CurrentVelocity
+                            root.CFrame = CFrame.lookAt(root.Position, Vector3.new(closestPlayer.Character.HumanoidRootPart.Position.X, root.Position.Y, closestPlayer.Character.HumanoidRootPart.Position.Z))
+                        end
                     end
-
-                    task.wait(0.1)
-                    getgenv().General.Desync.Desync = false
-                    task.wait(0.1)
-                    getgenv().General.Desync.Desync1 = true
-
-                    if getgenv().General.Desync.Desync1 then
-                        local CurrentVelocity = game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0),0)
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0,math.rad(0.01),0)
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(math.random(3000),math.random(3000),math.random(3000))
-                        game.RunService.RenderStepped:Wait()
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = CurrentVelocity
-                    end
-                end
+                end)
             end
         end)
     else
